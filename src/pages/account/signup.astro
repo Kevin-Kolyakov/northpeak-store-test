@@ -1,0 +1,53 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Create account">
+	<h1>Create your account</h1>
+	<form id="signup-form" class="checkout-form">
+		<label for="name">Full name</label>
+		<input id="name" name="name" type="text" required autocomplete="name" />
+		<label for="email">Email</label>
+		<input id="email" name="email" type="email" required autocomplete="email" />
+		<label for="password">Password</label>
+		<input id="password" name="password" type="password" required autocomplete="new-password" minlength="8" />
+		<label for="confirm">Confirm password</label>
+		<input id="confirm" name="confirm" type="password" required autocomplete="new-password" minlength="8" />
+		<p id="signup-err" class="err" role="alert"></p>
+		<div class="actions">
+			<button type="submit" class="primary">Create account</button>
+		</div>
+	</form>
+	<p>Already have an account? <a href="/account/login">Sign in</a></p>
+</Layout>
+
+<script>
+	import { isValidEmail, isValidPassword } from "../../lib/account";
+
+	const form = document.getElementById("signup-form") as HTMLFormElement;
+	const err = document.getElementById("signup-err")!;
+
+	form.addEventListener("submit", (e) => {
+		e.preventDefault();
+		const name = (document.getElementById("name") as HTMLInputElement).value.trim();
+		const email = (document.getElementById("email") as HTMLInputElement).value.trim();
+		const password = (document.getElementById("password") as HTMLInputElement).value;
+		const confirm = (document.getElementById("confirm") as HTMLInputElement).value;
+
+		if (!name || !isValidEmail(email)) {
+			err.textContent = "Enter your name and a valid email.";
+			return;
+		}
+		if (!isValidPassword(password)) {
+			err.textContent = "Password must be at least 8 characters.";
+			return;
+		}
+		if (password !== confirm) {
+			err.textContent = "Passwords don't match.";
+			return;
+		}
+
+		localStorage.setItem("np-account", JSON.stringify({ name, email }));
+		location.href = "/account";
+	});
+</script>

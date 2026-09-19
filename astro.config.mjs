@@ -7,5 +7,9 @@ export default defineConfig({
 	// Static by default; /products/[slug] and /search opt into SSR
 	// (`export const prerender = false`) so BUG-04's artificial delay is a
 	// genuine per-request wait instead of a build-time no-op.
-	adapter: cloudflare(),
+	adapter: cloudflare({
+		// The site never transforms images at runtime, so skip provisioning
+		// the Cloudflare Images binding (a paid product some accounts don't have).
+		imageService: "passthrough",
+	}),
 });

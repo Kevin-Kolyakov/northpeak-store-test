@@ -28,6 +28,8 @@ const { title } = Astro.props;
 				<input id="q" name="q" type="search" placeholder="Search products" aria-label="Search products" />
 				<button type="submit">Search</button>
 			</form>
+			<a class="account-link" id="account-link" href="/account/login">Sign in</a>
+			<a class="wishlist-link" href="/wishlist">Wishlist</a>
 			<a class="cart-link" href="/cart">Cart</a>
 		</header>
 		<main>
@@ -52,6 +54,45 @@ const { title } = Astro.props;
 			}
 			document.getElementById("ck-ok")?.addEventListener("click", dismiss);
 			document.getElementById("ck-manage")?.addEventListener("click", dismiss);
+		</script>
+		<script>
+			import type { Account } from "../lib/account";
+
+			const raw = localStorage.getItem("np-account");
+			if (raw) {
+				const account: Account = JSON.parse(raw);
+				const link = document.getElementById("account-link") as HTMLAnchorElement;
+				link.textContent = account.name || account.email;
+				link.href = "/account";
+			}
+		</script>
+		<script>
+			const WISHLIST_KEY = "np-wishlist";
+
+			function getWishlist(): string[] {
+				return JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
+			}
+
+			function paint(button: HTMLElement, saved: boolean) {
+				button.classList.toggle("saved", saved);
+				button.textContent = saved ? "♥ Saved" : "♡ Save for later";
+			}
+
+			const wishlist = getWishlist();
+			document.querySelectorAll<HTMLElement>("[data-wishlist-slug]").forEach((button) => {
+				paint(button, wishlist.includes(button.dataset.wishlistSlug!));
+			});
+
+			document.addEventListener("click", (e) => {
+				const button = (e.target as HTMLElement).closest<HTMLElement>("[data-wishlist-slug]");
+				if (!button) return;
+				const slug = button.dataset.wishlistSlug!;
+				const current = getWishlist();
+				const saved = current.includes(slug);
+				const next = saved ? current.filter((s) => s !== slug) : [...current, slug];
+				localStorage.setItem(WISHLIST_KEY, JSON.stringify(next));
+				paint(button, !saved);
+			});
 		</script>
 	</body>
 </html>

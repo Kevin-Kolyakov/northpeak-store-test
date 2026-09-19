@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import ProductCard from "../../components/ProductCard.astro";
-import { CATEGORIES, getProductsByCategory } from "../../lib/inventory";
+import { CATEGORIES, SIZES, getProductsByCategory } from "../../lib/inventory";
 
 export function getStaticPaths() {
   return CATEGORIES.map((c) => ({ params: { slug: c.slug } }));
@@ -10,12 +10,74 @@ export function getStaticPaths() {
 const { slug } = Astro.params;
 const category = CATEGORIES.find((c) => c.slug === slug)!;
 const products = getProductsByCategory(slug!);
+const availableSizes = SIZES.filter((size) => products.some((p) => p.sizes.includes(size)));
 ---
 
 <Layout title={category.name}>
 	<div class="crumbs"><a href="/">Home</a> / {category.name}</div>
 	<h1>{category.name}</h1>
-	<div class="grid">
+
+	<div class="filters-bar">
+		<div>
+			<label for="sort">Sort by</label>
+			<select id="sort">
+				<option value="featured">Featured</option>
+				<option value="price-asc">Price: low to high</option>
+				<option value="price-desc">Price: high to low</option>
+				<option value="name">Name: A–Z</option>
+			</select>
+		</div>
+		<fieldset>
+			<legend>Size</legend>
+			<div class="opts">
+				{availableSizes.map((size) => (
+					<label><input type="checkbox" name="size-filter" value={size} />{size}</label>
+				))}
+			</div>
+		</fieldset>
+	</div>
+
+	<div class="grid" id="product-grid">
 		{products.map((product) => <ProductCard product={product} />)}
 	</div>
+	<p id="no-matches" class="crumbs" hidden>No products match those filters.</p>
 </Layout>
+
+<script>
+	const grid = document.getElementById("product-grid") as HTMLElement;
+	const cards = Array.from(grid.querySelectorAll<HTMLElement>(".card"));
+	const sortSelect = document.getElementById("sort") as HTMLSelectElement;
+	const sizeCheckboxes = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="size-filter"]'));
+	const noMatches = document.getElementById("no-matches") as HTMLElement;
+
+	function applyFilters() {
+		const checkedSizes = sizeCheckboxes.filter((cb) => cb.checked).map((cb) => cb.value);
+		let visibleCount = 0;
+		for (const card of cards) {
+			const sizes = (card.dataset.sizes || "").split(",");
+			const matches = checkedSizes.length === 0 || checkedSizes.some((s) => sizes.includes(s));
+			card.hidden = !matches;
+			if (matches) visibleCount++;
+		}
+		noMatches.hidden = visibleCount > 0;
+	}
+
+	function applySort() {
+		const sorted = [...cards].sort((a, b) => {
+			switch (sortSelect.value) {
+				case "price-asc":
+					return Number(a.dataset.price) - Number(b.dataset.price);
+				case "price-desc":
+					return Number(b.dataset.price) - Number(a.dataset.price);
+				case "name":
+					return (a.dataset.name || "").localeCompare(b.dataset.name || "");
+				default:
+					return 0;
+			}
+		});
+		for (const card of sorted) grid.appendChild(card);
+	}
+
+	sortSelect.addEventListener("change", applySort);
+	sizeCheckboxes.forEach((cb) => cb.addEventListener("change", applyFilters));
+</script>

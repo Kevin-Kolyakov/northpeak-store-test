@@ -11,8 +11,31 @@ import CheckoutProgress from "../../components/CheckoutProgress.astro";
 </Layout>
 
 <script>
+	import type { Account } from "../../lib/account";
+	import type { Order, OrderItem } from "../../lib/orders";
+	import { orderTotal } from "../../lib/orders";
+
 	const orderNumber = `NP-${Math.floor(100000 + Math.random() * 900000)}`;
 	document.getElementById("order-number")!.textContent = `Order ${orderNumber} confirmed. A receipt has been sent to your email.`;
+
+	const accountRaw = localStorage.getItem("np-account");
+	const cart: OrderItem[] = JSON.parse(sessionStorage.getItem("np-cart") || "[]");
+	const shipping = JSON.parse(sessionStorage.getItem("np-shipping") || "null");
+
+	if (accountRaw && cart.length > 0) {
+		const account: Account = JSON.parse(accountRaw);
+		const orders: Order[] = JSON.parse(localStorage.getItem("np-orders") || "[]");
+		orders.unshift({
+			id: orderNumber,
+			email: account.email,
+			date: new Date().toISOString(),
+			items: cart,
+			total: orderTotal(cart),
+			shipping,
+		});
+		localStorage.setItem("np-orders", JSON.stringify(orders));
+	}
+
 	sessionStorage.removeItem("np-cart");
 	sessionStorage.removeItem("np-shipping");
 	sessionStorage.removeItem("np-payment");

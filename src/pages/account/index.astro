@@ -1,0 +1,60 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout title="Your account">
+	<h1>Your account</h1>
+	<div id="account-details" hidden>
+		<p>Signed in as <strong id="account-name"></strong></p>
+		<p id="account-email" class="crumbs"></p>
+		<h2 class="section-title">Orders</h2>
+		<div id="orders-list"></div>
+		<button id="sign-out" class="link">Sign out</button>
+	</div>
+</Layout>
+
+<script>
+	import type { Account } from "../../lib/account";
+	import type { Order } from "../../lib/orders";
+
+	const raw = localStorage.getItem("np-account");
+	if (!raw) {
+		location.href = "/account/login";
+	} else {
+		const account: Account = JSON.parse(raw);
+		document.getElementById("account-name")!.textContent = account.name || account.email;
+		document.getElementById("account-email")!.textContent = account.email;
+		document.getElementById("account-details")!.hidden = false;
+
+		const allOrders: Order[] = JSON.parse(localStorage.getItem("np-orders") || "[]");
+		const orders = allOrders.filter((order) => order.email === account.email);
+		const ordersList = document.getElementById("orders-list")!;
+
+		if (orders.length === 0) {
+			ordersList.innerHTML = "<p>No orders yet.</p>";
+		} else {
+			ordersList.innerHTML = orders
+				.map((order) => {
+					const date = new Date(order.date).toLocaleDateString(undefined, {
+						year: "numeric",
+						month: "long",
+						day: "numeric",
+					});
+					const items = order.items.map((item) => `${item.name} (${item.size})`).join(", ");
+					return `
+						<div class="summary-line">
+							<p><strong>${order.id}</strong> — ${date}</p>
+							<p>${items}</p>
+							<p>$${order.total}.00</p>
+						</div>
+					`;
+				})
+				.join("");
+		}
+	}
+
+	document.getElementById("sign-out")?.addEventListener("click", () => {
+		localStorage.removeItem("np-account");
+		location.href = "/";
+	});
+</script>

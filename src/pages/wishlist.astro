@@ -1,0 +1,36 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Your wishlist">
+	<h1>Your wishlist</h1>
+	<div id="wishlist-empty"><p>You haven't saved anything yet.</p></div>
+	<div id="wishlist-grid" class="grid" hidden></div>
+</Layout>
+
+<script>
+	import { getProductBySlug } from "../lib/inventory";
+
+	const slugs: string[] = JSON.parse(localStorage.getItem("np-wishlist") || "[]");
+	const products = slugs.map((slug) => getProductBySlug(slug)).filter((p) => p !== undefined);
+
+	if (products.length > 0) {
+		document.getElementById("wishlist-empty")!.hidden = true;
+		const grid = document.getElementById("wishlist-grid")!;
+		grid.hidden = false;
+		grid.innerHTML = products
+			.map(
+				(p) => `
+					<article class="card" data-slug="${p.slug}">
+						<a href="/products/${p.slug}">
+							<div class="img"></div>
+							<h3>${p.name}</h3>
+						</a>
+						<p class="price">$${p.price}</p>
+						<button class="wishlist-btn saved" data-wishlist-slug="${p.slug}">♥ Saved</button>
+					</article>
+				`,
+			)
+			.join("");
+	}
+</script>

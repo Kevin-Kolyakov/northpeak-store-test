@@ -17,11 +17,12 @@ const href = `/products/${product.slug}`;
 // shoppers only find out a size is sold out after opening the product page.
 ---
 
-<article class="card">
+<article class="card" data-slug={product.slug} data-price={product.price} data-sizes={product.sizes.join(",")} data-name={product.name.toLowerCase()}>
 	<a href={href}>
 		<div class="img"></div>
 		<h3>{product.name}</h3>
 	</a>
 	<p class="price">${product.price}</p>
+	<button class="wishlist-btn" data-wishlist-slug={product.slug} aria-label={`Save ${product.name} to wishlist`}>♡ Save for later</button>
 	<button onclick={`location.href='${href}'`}>Select options</button>
 </article>

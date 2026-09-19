@@ -30,12 +30,26 @@ Nine, one per category Friction's detectors currently look for. Each lives in on
 src/
   components/   AddToCartButton, ProductOptions, ProductCard, NewsletterModal,
                 PromoCodeForm, CheckoutProgress — most of the bugs live here
-  layouts/      Layout.astro — header, nav, search, cookie banner, footer
-  lib/          inventory.ts (product data), checkoutSteps.ts, getProduct helpers
-  pages/        /, /collections/[slug], /products/[slug], /search, /cart,
-                /checkout/{shipping,shipping-confirm,payment,payment-confirm,review,confirm}
+  layouts/      Layout.astro — header, nav, search, cookie banner, footer,
+                account-state + wishlist-toggle scripts (run on every page)
+  lib/          inventory.ts (product data), checkoutSteps.ts, account.ts,
+                orders.ts, reviews.ts
+  pages/        /, /collections/[slug] (sort + size filters), /products/[slug]
+                (reviews, related products, recently viewed), /search, /cart,
+                /wishlist, /checkout/{shipping,shipping-confirm,payment,
+                payment-confirm,review,confirm}, /account/{login,signup,index}
 testbed.manifest.json   ground truth: bug id -> category -> files -> expected fix
 ```
+
+None of the nine bugs live in the account/wishlist/reviews/orders features below — they're clean control features, not a tenth fixture:
+
+- **Accounts** are the same kind of fake as checkout: `/account/signup` and `/account/login` write `{ name, email }` to `localStorage` under `np-account` (never the password — nothing verifies credentials, there's no backend). `/account` reads that and redirects to `/account/login` if it's missing; the header nav reflects sign-in state on every page.
+- **Orders**: `/checkout/confirm` appends a record to `localStorage["np-orders"]` when a signed-in shopper completes checkout; `/account` lists the ones matching the signed-in email.
+- **Wishlist**: a heart-toggle button (`data-wishlist-slug`) appears on every product card and the product page; the toggle handler lives once in `Layout.astro` and works via event delegation, so it applies to cards rendered after page load too. State is `localStorage["np-wishlist"]`, a plain array of slugs. `/wishlist` lists them.
+- **Reviews**: each product ships 1–2 seed reviews (`src/lib/reviews.ts`); shopper-submitted reviews are appended to `localStorage["np-reviews-<slug>"]` and merged with the seed set client-side. Never rendered via unescaped `innerHTML`.
+- **Recently viewed**: `localStorage["np-recently-viewed"]`, capped at 6, updated on every product page visit.
+- **Collection filters/sort**: client-side only — `/collections/[slug]` renders every product in the category up front and a script filters (`hidden`) and reorders (`appendChild`) the existing cards, so it works without a data endpoint.
+- **Guest checkout**: `/checkout/shipping` shows a dismissable-by-ignoring "sign in for faster checkout" banner when `np-account` is absent, but never blocks guest checkout.
 
 `/products/[slug]` and `/search` are server-rendered (`prerender = false`) so BUG-04's delay is a genuine per-request wait, not a build-time no-op; everything else is static.
 

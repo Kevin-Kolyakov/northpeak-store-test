@@ -3,9 +3,10 @@ export const prerender = false;
 
 import Layout from "../../layouts/Layout.astro";
 import ProductOptions from "../../components/ProductOptions.astro";
+import ProductCard from "../../components/ProductCard.astro";
 import AddToCartButton from "../../components/AddToCartButton.astro";
 import NewsletterModal from "../../components/NewsletterModal.astro";
-import { CATEGORIES, getProductBySlug } from "../../lib/inventory";
+import { CATEGORIES, getProductBySlug, getProductsByCategory } from "../../lib/inventory";
 
 const { slug } = Astro.params;
 const product = slug ? getProductBySlug(slug) : undefined;
@@ -22,6 +23,7 @@ if (!product) {
 }
 
 const category = product ? CATEGORIES.find((c) => c.slug === product.category) : undefined;
+const related = product ? getProductsByCategory(product.category).filter((p) => p.slug !== product.slug).slice(0, 4) : [];
 ---
 
 {!product ? (
@@ -42,9 +44,137 @@ const category = product ? CATEGORIES.find((c) => c.slug === product.category) :
 				<p style="color:var(--muted)">{product.description}</p>
 				<ProductOptions product={product} />
 				<AddToCartButton product={product} />
+				<button class="wishlist-btn" data-wishlist-slug={product.slug} aria-label={`Save ${product.name} to wishlist`}>♡ Save for later</button>
 				<p style="color:var(--muted); margin-top:22px">Free shipping over $150. 30-day returns. {product.care}</p>
 			</div>
 		</div>
+
+		<section id="reviews" data-slug={product.slug}>
+			<h2 class="section-title">Reviews</h2>
+			<p id="reviews-summary" class="crumbs"></p>
+			<div id="reviews-list"></div>
+
+			<h3>Write a review</h3>
+			<form id="review-form" class="checkout-form">
+				<label for="rev-author">Name</label>
+				<input id="rev-author" name="author" type="text" required />
+				<label for="rev-rating">Rating</label>
+				<select id="rev-rating" name="rating" required>
+					<option value="5">5 — Excellent</option>
+					<option value="4">4 — Good</option>
+					<option value="3">3 — Average</option>
+					<option value="2">2 — Poor</option>
+					<option value="1">1 — Terrible</option>
+				</select>
+				<label for="rev-title">Review title</label>
+				<input id="rev-title" name="title" type="text" required />
+				<label for="rev-body">Review</label>
+				<textarea id="rev-body" name="body" rows="4" required></textarea>
+				<div class="actions">
+					<button type="submit" class="primary">Submit review</button>
+				</div>
+			</form>
+		</section>
+
+		{related.length > 0 && (
+			<section>
+				<h2 class="section-title">You might also like</h2>
+				<div class="grid">
+					{related.map((p) => <ProductCard product={p} />)}
+				</div>
+			</section>
+		)}
+
+		<section id="recently-viewed" data-slug={product.slug}></section>
+
 		<NewsletterModal />
 	</Layout>
 )}
+
+<script>
+	import { SEED_REVIEWS, averageRating, type Review } from "../../lib/reviews";
+
+	const section = document.getElementById("reviews");
+	if (section) {
+		const slug = section.dataset.slug!;
+		const KEY = `np-reviews-${slug}`;
+
+		const loadUserReviews = (): Review[] => JSON.parse(localStorage.getItem(KEY) || "[]");
+
+		const stars = (rating: number): string => "★".repeat(rating) + "☆".repeat(5 - rating);
+
+		const escapeHtml = (s: string): string => {
+			const div = document.createElement("div");
+			div.textContent = s;
+			return div.innerHTML;
+		};
+
+		function render() {
+			const all = [...loadUserReviews(), ...(SEED_REVIEWS[slug] ?? [])];
+			const avg = averageRating(all);
+			document.getElementById("reviews-summary")!.textContent =
+				all.length > 0
+					? `${avg.toFixed(1)} out of 5 (${all.length} review${all.length === 1 ? "" : "s"})`
+					: "No reviews yet.";
+
+			document.getElementById("reviews-list")!.innerHTML = all
+				.map(
+					(r) => `
+						<div class="review">
+							<div class="stars">${stars(r.rating)}</div>
+							<h4>${escapeHtml(r.title)}</h4>
+							<p class="crumbs">${escapeHtml(r.author)}</p>
+							<p>${escapeHtml(r.body)}</p>
+						</div>
+					`,
+				)
+				.join("");
+		}
+
+		render();
+
+		const form = document.getElementById("review-form") as HTMLFormElement;
+		form.addEventListener("submit", (e) => {
+			e.preventDefault();
+			const author = (document.getElementById("rev-author") as HTMLInputElement).value.trim();
+			const rating = Number((document.getElementById("rev-rating") as HTMLSelectElement).value) as Review["rating"];
+			const title = (document.getElementById("rev-title") as HTMLInputElement).value.trim();
+			const body = (document.getElementById("rev-body") as HTMLTextAreaElement).value.trim();
+			if (!author || !title || !body) return;
+
+			const reviews = loadUserReviews();
+			reviews.unshift({ author, rating, title, body });
+			localStorage.setItem(KEY, JSON.stringify(reviews));
+			form.reset();
+			render();
+		});
+	}
+</script>
+
+<script>
+	import { getProductBySlug } from "../../lib/inventory";
+
+	const container = document.getElementById("recently-viewed");
+	if (container) {
+		const KEY = "np-recently-viewed";
+		const currentSlug = container.dataset.slug!;
+		const viewed: string[] = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+		const toShow = viewed.filter((slug) => slug !== currentSlug).slice(0, 4);
+		if (toShow.length > 0) {
+			container.innerHTML =
+				`<h2 class="section-title">Recently viewed</h2><div class="grid">` +
+				toShow
+					.map((slug) => {
+						const p = getProductBySlug(slug);
+						if (!p) return "";
+						return `<a class="card" href="/products/${p.slug}" style="text-decoration:none"><div class="img"></div><h3>${p.name}</h3><p class="price">$${p.price}</p></a>`;
+					})
+					.join("") +
+				`</div>`;
+		}
+
+		const updated = [currentSlug, ...viewed.filter((slug) => slug !== currentSlug)].slice(0, 6);
+		localStorage.setItem(KEY, JSON.stringify(updated));
+	}
+</script>
