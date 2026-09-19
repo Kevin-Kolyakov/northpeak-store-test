@@ -24,5 +24,5 @@ const href = `/products/${product.slug}`;
 	</a>
 	<p class="price">${product.price}</p>
 	<button class="wishlist-btn" data-wishlist-slug={product.slug} aria-label={`Save ${product.name} to wishlist`}>♡ Save for later</button>
-	<button onclick={`location.href='${href}'`}>Select options</button>
+	<a href={href} style="cursor: pointer; text-decoration: underline;">Select options</a>
 </article>
