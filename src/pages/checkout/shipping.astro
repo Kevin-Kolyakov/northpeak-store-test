@@ -1,0 +1,40 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CheckoutProgress from "../../components/CheckoutProgress.astro";
+---
+
+<Layout title="Shipping address">
+	<CheckoutProgress path="/checkout/shipping" />
+	<h1>Shipping address</h1>
+	<form id="shipping-form" class="checkout-form">
+		<label for="name">Full name</label>
+		<input id="name" name="name" type="text" required />
+		<label for="address">Street address</label>
+		<input id="address" name="address" type="text" required />
+		<label for="city">City</label>
+		<input id="city" name="city" type="text" required />
+		<label for="postal">Postal code</label>
+		<input id="postal" name="postal" type="text" required />
+		<div class="actions">
+			<button type="submit" class="primary">Continue</button>
+		</div>
+	</form>
+</Layout>
+
+<script>
+	const form = document.getElementById("shipping-form") as HTMLFormElement;
+	const saved: Record<string, string> | null = JSON.parse(sessionStorage.getItem("np-shipping") || "null");
+	if (saved) {
+		for (const [key, value] of Object.entries(saved)) {
+			const field = form.elements.namedItem(key);
+			if (field instanceof HTMLInputElement) field.value = value;
+		}
+	}
+
+	form.addEventListener("submit", (e) => {
+		e.preventDefault();
+		const data = Object.fromEntries(new FormData(form).entries());
+		sessionStorage.setItem("np-shipping", JSON.stringify(data));
+		location.href = "/checkout/shipping-confirm";
+	});
+</script>

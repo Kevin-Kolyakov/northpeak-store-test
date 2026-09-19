@@ -1,0 +1,33 @@
+---
+// BUG-02 (retry): the "Apply" click handler wires itself up behind a
+// setTimeout, simulating a slow-loading script sharing the page. A click
+// before it attaches does nothing at all, so shoppers click "Apply" twice —
+// the second click lands after the handler is finally in place. The fix is
+// to attach the handler synchronously on load instead of behind a delay.
+---
+
+<div class="promo">
+	<label for="promo-code">Promo code</label>
+	<div style="display:flex; gap:8px; max-width:320px;">
+		<input id="promo-code" type="text" placeholder="Enter code" style="flex:1; padding:9px 12px; border:1px solid var(--border); border-radius:6px;" />
+		<button id="promo-apply">Apply</button>
+	</div>
+	<p id="promo-status" style="color:var(--muted); font-size:13px; margin-top:8px;"></p>
+</div>
+
+<script>
+	const status = document.getElementById("promo-status")!;
+
+	setTimeout(() => {
+		document.getElementById("promo-apply")!.addEventListener("click", (e) => {
+			e.preventDefault();
+			const input = document.getElementById("promo-code") as HTMLInputElement;
+			const code = input.value.trim().toUpperCase();
+			if (code === "NORTHPEAK10") {
+				status.textContent = "10% discount applied.";
+			} else if (code) {
+				status.textContent = "That code is not valid.";
+			}
+		});
+	}, 1200);
+</script>

@@ -1,0 +1,29 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CheckoutProgress from "../../components/CheckoutProgress.astro";
+
+// BUG-09 (step_budget): this whole screen just echoes the previous form
+// back and asks for a second "Confirm" click. It adds nothing the shipping
+// form couldn't show itself (e.g. inline above its own Continue button).
+// See lib/checkoutSteps.ts for the full padded step list.
+---
+
+<Layout title="Confirm shipping address">
+	<CheckoutProgress path="/checkout/shipping-confirm" />
+	<h1>Confirm shipping address</h1>
+	<div id="shipping-summary" class="summary-line">Loading…</div>
+	<div class="actions">
+		<a class="btn" href="/checkout/shipping">Edit</a>
+		<a class="btn primary" href="/checkout/payment">Confirm</a>
+	</div>
+</Layout>
+
+<script>
+	const shipping = JSON.parse(sessionStorage.getItem("np-shipping") || "null");
+	const summary = document.getElementById("shipping-summary")!;
+	if (shipping) {
+		summary.innerHTML = `${shipping.name}<br>${shipping.address}<br>${shipping.city} ${shipping.postal}`;
+	} else {
+		summary.textContent = "No shipping address on file yet.";
+	}
+</script>

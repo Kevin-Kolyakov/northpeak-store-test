@@ -1,0 +1,41 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PromoCodeForm from "../components/PromoCodeForm.astro";
+---
+
+<Layout title="Your cart">
+	<h1>Your cart (<span id="cart-count">0</span>)</h1>
+	<div id="cart-lines"><p>Your cart is empty.</p></div>
+	<p id="cart-subtotal" style="font-weight:600; display:none"></p>
+
+	<PromoCodeForm />
+
+	<div class="actions">
+		<a class="btn" href="/">Continue shopping</a>
+		<a class="btn primary" id="checkout-link" href="/checkout/shipping">Checkout</a>
+	</div>
+</Layout>
+
+<script>
+	interface CartItem {
+		slug: string;
+		name: string;
+		price: number;
+		size: string;
+	}
+
+	const cart: CartItem[] = JSON.parse(sessionStorage.getItem("np-cart") || "[]");
+	const lines = document.getElementById("cart-lines")!;
+	const count = document.getElementById("cart-count")!;
+	const subtotal = document.getElementById("cart-subtotal")!;
+
+	if (cart.length > 0) {
+		count.textContent = String(cart.length);
+		lines.innerHTML = cart
+			.map((item) => `<p>${item.name} — size ${item.size} — $${item.price}.00</p>`)
+			.join("");
+		const total = cart.reduce((sum, item) => sum + item.price, 0);
+		subtotal.textContent = `Subtotal: $${total}.00`;
+		subtotal.style.display = "block";
+	}
+</script>

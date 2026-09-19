@@ -1,0 +1,38 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CheckoutProgress from "../../components/CheckoutProgress.astro";
+---
+
+<Layout title="Payment method">
+	<CheckoutProgress path="/checkout/payment" />
+	<h1>Payment method</h1>
+	<form id="payment-form" class="checkout-form">
+		<label for="card-name">Name on card</label>
+		<input id="card-name" name="cardName" type="text" required />
+		<label for="card-number">Card number</label>
+		<input id="card-number" name="cardNumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" required />
+		<label for="expiry">Expiry</label>
+		<input id="expiry" name="expiry" type="text" placeholder="MM/YY" required />
+		<div class="actions">
+			<button type="submit" class="primary">Continue</button>
+		</div>
+	</form>
+</Layout>
+
+<script>
+	const form = document.getElementById("payment-form") as HTMLFormElement;
+	const saved: Record<string, string> | null = JSON.parse(sessionStorage.getItem("np-payment") || "null");
+	if (saved) {
+		for (const [key, value] of Object.entries(saved)) {
+			const field = form.elements.namedItem(key);
+			if (field instanceof HTMLInputElement) field.value = value;
+		}
+	}
+
+	form.addEventListener("submit", (e) => {
+		e.preventDefault();
+		const data = Object.fromEntries(new FormData(form).entries());
+		sessionStorage.setItem("np-payment", JSON.stringify(data));
+		location.href = "/checkout/payment-confirm";
+	});
+</script>

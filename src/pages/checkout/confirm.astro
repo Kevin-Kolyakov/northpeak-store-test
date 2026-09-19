@@ -1,0 +1,19 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CheckoutProgress from "../../components/CheckoutProgress.astro";
+---
+
+<Layout title="Order placed">
+	<CheckoutProgress path="/checkout/confirm" />
+	<h1>Thanks — your order is placed.</h1>
+	<p id="order-number" style="color:var(--muted)"></p>
+	<a class="btn primary" href="/">Continue shopping</a>
+</Layout>
+
+<script>
+	const orderNumber = `NP-${Math.floor(100000 + Math.random() * 900000)}`;
+	document.getElementById("order-number")!.textContent = `Order ${orderNumber} confirmed. A receipt has been sent to your email.`;
+	sessionStorage.removeItem("np-cart");
+	sessionStorage.removeItem("np-shipping");
+	sessionStorage.removeItem("np-payment");
+</script>

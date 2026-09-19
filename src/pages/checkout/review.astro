@@ -1,0 +1,48 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CheckoutProgress from "../../components/CheckoutProgress.astro";
+---
+
+<Layout title="Review order">
+	<CheckoutProgress path="/checkout/review" />
+	<h1>Review order</h1>
+	<div id="order-lines"></div>
+	<p id="order-subtotal" style="font-weight:600"></p>
+	<div id="review-shipping" class="summary-line"></div>
+	<div id="review-payment" class="summary-line"></div>
+	<div class="actions">
+		<button id="place-order" class="primary">Place order</button>
+	</div>
+</Layout>
+
+<script>
+	interface CartItem {
+		slug: string;
+		name: string;
+		price: number;
+		size: string;
+	}
+
+	const cart: CartItem[] = JSON.parse(sessionStorage.getItem("np-cart") || "[]");
+	const shipping: Record<string, string> | null = JSON.parse(sessionStorage.getItem("np-shipping") || "null");
+	const payment: Record<string, string> | null = JSON.parse(sessionStorage.getItem("np-payment") || "null");
+
+	document.getElementById("order-lines")!.innerHTML = cart
+		.map((item) => `<p>${item.name} — size ${item.size} — $${item.price}.00</p>`)
+		.join("") || "<p>Your cart is empty.</p>";
+
+	const total = cart.reduce((sum, item) => sum + item.price, 0);
+	document.getElementById("order-subtotal")!.textContent = `Subtotal: $${total}.00`;
+
+	document.getElementById("review-shipping")!.innerHTML = shipping
+		? `Ship to ${shipping.name}, ${shipping.address}, ${shipping.city} ${shipping.postal}`
+		: "No shipping address on file.";
+
+	document.getElementById("review-payment")!.innerHTML = payment
+		? `Pay with card ending in ${(payment.cardNumber || "").replace(/\s/g, "").slice(-4) || "····"}`
+		: "No payment method on file.";
+
+	document.getElementById("place-order")!.addEventListener("click", () => {
+		location.href = "/checkout/confirm";
+	});
+</script>

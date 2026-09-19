@@ -1,0 +1,44 @@
+---
+import type { Product } from "../lib/inventory";
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+---
+
+<button id="add" class="primary">Add to cart</button>
+<div id="err" class="err" role="alert"></div>
+
+<div id="drawer" class="drawer" role="dialog" aria-label="Added to cart" hidden>
+	<h2>Added to cart</h2>
+	<p>{product.name}</p>
+	<a id="view" class="btn primary" href="/cart">View cart</a>
+</div>
+
+<script define:vars={{ soldOutSizes: product.soldOutSizes, productSlug: product.slug, productName: product.name, price: product.price }}>
+	const err = document.getElementById("err");
+	const drawer = document.getElementById("drawer");
+	const view = document.getElementById("view");
+
+	document.getElementById("add").addEventListener("click", () => {
+		const sizeInput = document.querySelector('input[name="size"]:checked');
+		// BUG-01 (dead_click): no size chosen -> silently do nothing. No error,
+		// no shake, no disabled state on the button. The fix is to surface
+		// feedback here instead of returning early with no visible change.
+		if (!sizeInput) return;
+
+		if (soldOutSizes.includes(sizeInput.value)) {
+			err.textContent = `Sorry, size ${sizeInput.value} is out of stock. Please choose another size.`;
+			return;
+		}
+
+		err.textContent = "";
+		const cart = JSON.parse(sessionStorage.getItem("np-cart") || "[]");
+		cart.push({ slug: productSlug, name: productName, price, size: sizeInput.value });
+		sessionStorage.setItem("np-cart", JSON.stringify(cart));
+		drawer.hidden = false;
+		view.focus();
+	});
+</script>

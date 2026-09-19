@@ -1,0 +1,78 @@
+{
+  "_comment": "Ground truth for grading Friction runs against this site. Not imported by the app.",
+  "site": "northpeak-store",
+  "bugs": [
+    {
+      "id": "BUG-01",
+      "category": "dead_click",
+      "files": ["src/components/AddToCartButton.astro"],
+      "page": "/products/{slug}",
+      "description": "Clicking \"Add to cart\" with no size selected does nothing: no error, no shake, no disabled state.",
+      "expectedFix": "Show inline feedback (e.g. highlight the size fieldset and/or show an error) when Add to cart is clicked with no size chosen, instead of returning silently."
+    },
+    {
+      "id": "BUG-02",
+      "category": "retry",
+      "files": ["src/components/PromoCodeForm.astro"],
+      "page": "/cart",
+      "description": "The promo code \"Apply\" button's click handler attaches behind a 1.2s setTimeout, so a click before then is silently swallowed and shoppers click twice.",
+      "expectedFix": "Attach the click handler synchronously instead of deferring it behind a timer."
+    },
+    {
+      "id": "BUG-03",
+      "category": "error_text",
+      "files": ["src/components/ProductOptions.astro"],
+      "page": "/products/{slug}",
+      "description": "Sold-out sizes render as ordinary selectable radios with no visual indication; the shopper only learns a size is unavailable from the error banner after submitting.",
+      "expectedFix": "Disable the radio input and add a \"Sold out\" label for any size in product.soldOutSizes."
+    },
+    {
+      "id": "BUG-04",
+      "category": "long_wait",
+      "files": ["src/pages/products/[slug].astro"],
+      "page": "/products/alpine-down-parka",
+      "description": "This one product page awaits an artificial 5.6s delay before responding, simulating an unoptimized backend call made only for this item.",
+      "expectedFix": "Remove the per-item delay (or make whatever it stands in for asynchronous/parallel) so the page responds like every other product page."
+    },
+    {
+      "id": "BUG-05",
+      "category": "modal_interrupt",
+      "files": ["src/components/NewsletterModal.astro"],
+      "page": "/products/{slug}",
+      "description": "A signup popup opens unprompted on a 2.5s timer on every product page.",
+      "expectedFix": "Don't open the modal automatically; trigger it from explicit user intent (e.g. a visible \"Get 10% off\" link) or remove the timer."
+    },
+    {
+      "id": "BUG-06",
+      "category": "keyboard_trap",
+      "files": ["src/components/NewsletterModal.astro"],
+      "page": "/products/{slug}",
+      "description": "The newsletter modal never receives focus on open and swallows Tab entirely; only Escape closes it, so keyboard users can get stuck.",
+      "expectedFix": "Move focus into the dialog on open, implement a real focus trap that cycles Tab between the dialog's own focusable elements, and restore focus to the trigger on close."
+    },
+    {
+      "id": "BUG-07",
+      "category": "ambiguous_label",
+      "files": ["src/components/ProductCard.astro"],
+      "page": "/collections/{slug}, /search, /",
+      "description": "Every product card's button reads \"Select options\" with no product name attached, so the accessible name is identical across the whole grid.",
+      "expectedFix": "Give the button an accessible name that includes the product, e.g. aria-label={`Select options for ${product.name}`}."
+    },
+    {
+      "id": "BUG-08",
+      "category": "loop",
+      "files": ["src/components/ProductCard.astro", "src/lib/inventory.ts"],
+      "page": "/collections/{slug}, /search",
+      "description": "hasLimitedStock()/isFullyOutOfStock() already know which sizes are gone, but ProductCard never renders that, so shoppers open the product page to find out a size is sold out, then go back and try another.",
+      "expectedFix": "Render a small \"Limited sizes\" or \"Almost gone\" flag on the card when hasLimitedStock(product) is true, using data already available in lib/inventory.ts."
+    },
+    {
+      "id": "BUG-09",
+      "category": "step_budget",
+      "files": ["src/lib/checkoutSteps.ts", "src/pages/checkout/shipping-confirm.astro", "src/pages/checkout/payment-confirm.astro"],
+      "page": "/checkout/*",
+      "description": "Checkout has six screens where three would do: shipping-confirm and payment-confirm each just echo the previous form back behind a second \"Confirm\" click.",
+      "expectedFix": "Remove the two standalone confirm screens; fold their summaries into the bottom of shipping.astro and payment.astro respectively, and update CHECKOUT_STEPS accordingly."
+    }
+  ]
+}

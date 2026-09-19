@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { searchProducts } from "../lib/inventory";
+
+const query = Astro.url.searchParams.get("q") ?? "";
+const results = searchProducts(query);
+---
+
+<Layout title={`Results for "${query}"`}>
+	<h1>Results for &ldquo;{query}&rdquo;</h1>
+	{results.length === 0 ? (
+		<p>No products matched your search.</p>
+	) : (
+		<div class="grid">
+			{results.map((product) => <ProductCard product={product} />)}
+		</div>
+	)}
+</Layout>

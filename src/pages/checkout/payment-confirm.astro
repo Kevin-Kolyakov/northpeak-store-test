@@ -1,0 +1,28 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import CheckoutProgress from "../../components/CheckoutProgress.astro";
+
+// BUG-09 (step_budget): the second padded screen — same complaint as
+// shipping-confirm.astro. See lib/checkoutSteps.ts.
+---
+
+<Layout title="Confirm payment method">
+	<CheckoutProgress path="/checkout/payment-confirm" />
+	<h1>Confirm payment method</h1>
+	<div id="payment-summary" class="summary-line">Loading…</div>
+	<div class="actions">
+		<a class="btn" href="/checkout/payment">Edit</a>
+		<a class="btn primary" href="/checkout/review">Confirm</a>
+	</div>
+</Layout>
+
+<script>
+	const payment = JSON.parse(sessionStorage.getItem("np-payment") || "null");
+	const summary = document.getElementById("payment-summary")!;
+	if (payment) {
+		const last4 = (payment.cardNumber || "").replace(/\s/g, "").slice(-4);
+		summary.innerHTML = `${payment.cardName}<br>Card ending in ${last4 || "····"}<br>Expires ${payment.expiry}`;
+	} else {
+		summary.textContent = "No payment method on file yet.";
+	}
+</script>

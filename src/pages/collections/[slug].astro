@@ -1,0 +1,21 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import { CATEGORIES, getProductsByCategory } from "../../lib/inventory";
+
+export function getStaticPaths() {
+  return CATEGORIES.map((c) => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const category = CATEGORIES.find((c) => c.slug === slug)!;
+const products = getProductsByCategory(slug!);
+---
+
+<Layout title={category.name}>
+	<div class="crumbs"><a href="/">Home</a> / {category.name}</div>
+	<h1>{category.name}</h1>
+	<div class="grid">
+		{products.map((product) => <ProductCard product={product} />)}
+	</div>
+</Layout>

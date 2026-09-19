@@ -1,0 +1,15 @@
+---
+import { CHECKOUT_STEPS } from "../lib/checkoutSteps";
+
+interface Props {
+  path: string;
+}
+
+const { path } = Astro.props;
+---
+
+<div class="checkout-steps">
+	{CHECKOUT_STEPS.map((step) => (
+		<span class={`step ${step.path === path ? "current" : ""}`}>{step.label}</span>
+	))}
+</div>

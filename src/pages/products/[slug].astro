@@ -1,0 +1,50 @@
+---
+export const prerender = false;
+
+import Layout from "../../layouts/Layout.astro";
+import ProductOptions from "../../components/ProductOptions.astro";
+import AddToCartButton from "../../components/AddToCartButton.astro";
+import NewsletterModal from "../../components/NewsletterModal.astro";
+import { CATEGORIES, getProductBySlug } from "../../lib/inventory";
+
+const { slug } = Astro.params;
+const product = slug ? getProductBySlug(slug) : undefined;
+
+if (!product) {
+  Astro.response.status = 404;
+} else if (product.slug === "alpine-down-parka") {
+  // BUG-04 (long_wait): this one product's page takes ~5.6s to respond,
+  // simulating an unoptimized backend call made only for this item. Every
+  // other product page resolves immediately. The fix is to remove or
+  // parallelize whatever this stands in for — real product pages shouldn't
+  // have a per-item synchronous delay at all.
+  await new Promise((resolve) => setTimeout(resolve, 5600));
+}
+
+const category = product ? CATEGORIES.find((c) => c.slug === product.category) : undefined;
+---
+
+{!product ? (
+	<Layout title="Not found">
+		<h1>Page not found</h1>
+		<p><a href="/">Back to the shop</a></p>
+	</Layout>
+) : (
+	<Layout title={product.name}>
+		<div class="crumbs">
+			<a href="/">Home</a> / <a href={`/collections/${product.category}`}>{category?.name}</a> / {product.name}
+		</div>
+		<div class="product-layout">
+			<div class="pimg"></div>
+			<div>
+				<h1>{product.name}</h1>
+				<p style="font-size:20px">${product.price}.00</p>
+				<p style="color:var(--muted)">{product.description}</p>
+				<ProductOptions product={product} />
+				<AddToCartButton product={product} />
+				<p style="color:var(--muted); margin-top:22px">Free shipping over $150. 30-day returns. {product.care}</p>
+			</div>
+		</div>
+		<NewsletterModal />
+	</Layout>
+)}

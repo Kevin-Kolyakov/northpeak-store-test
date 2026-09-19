@@ -1,0 +1,27 @@
+---
+import type { Product } from "../lib/inventory";
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+const href = `/products/${product.slug}`;
+
+// BUG-07 (ambiguous_label): every card's button reads "Select options" with
+// no product name attached, so keyboard and screen-reader users can't tell
+// one card's button from another. Should be `Select options for ${product.name}`.
+//
+// BUG-08 (loop): `hasLimitedStock`/`isFullyOutOfStock` already know which
+// sizes are gone (see lib/inventory.ts), but nothing here renders it, so
+// shoppers only find out a size is sold out after opening the product page.
+---
+
+<article class="card">
+	<a href={href}>
+		<div class="img"></div>
+		<h3>{product.name}</h3>
+	</a>
+	<p class="price">${product.price}</p>
+	<button onclick={`location.href='${href}'`}>Select options</button>
+</article>

@@ -1,0 +1,57 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title} | Northpeak</title>
+	</head>
+	<body>
+		<header class="site">
+			<a class="logo" href="/" aria-label="Northpeak home">NORTHPEAK</a>
+			<nav class="main" aria-label="Main">
+				<a href="/collections/mens-jackets">Men</a>
+				<a href="/collections/womens-jackets">Women</a>
+				<a href="/collections/sweaters-layers">Sweaters &amp; Layers</a>
+				<a href="/collections/accessories">Accessories</a>
+			</nav>
+			<form class="search" action="/search" role="search">
+				<label for="q" hidden>Search products</label>
+				<input id="q" name="q" type="search" placeholder="Search products" aria-label="Search products" />
+				<button type="submit">Search</button>
+			</form>
+			<a class="cart-link" href="/cart">Cart</a>
+		</header>
+		<main>
+			<slot />
+		</main>
+		<footer class="site">
+			<p>Northpeak is a fictional sandbox storefront built to test website QA tooling. Not a real store — nothing here ships.</p>
+		</footer>
+		<div id="cookies" hidden>
+			<p>We use cookies to personalise content and analyse traffic.</p>
+			<button id="ck-manage">Manage preferences</button>
+			<button id="ck-ok" class="primary">Accept all cookies</button>
+		</div>
+		<script>
+			const banner = document.getElementById("cookies") as HTMLElement;
+			if (!sessionStorage.getItem("np-cookies")) {
+				banner.hidden = false;
+			}
+			function dismiss() {
+				sessionStorage.setItem("np-cookies", "1");
+				banner.hidden = true;
+			}
+			document.getElementById("ck-ok")?.addEventListener("click", dismiss);
+			document.getElementById("ck-manage")?.addEventListener("click", dismiss);
+		</script>
+	</body>
+</html>

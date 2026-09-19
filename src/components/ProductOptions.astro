@@ -1,0 +1,31 @@
+---
+import type { Product } from "../lib/inventory";
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+
+// BUG-03 (error_text): sold-out sizes render as ordinary, selectable radio
+// options — nothing here marks them disabled or labels them "Sold out". The
+// only place a shopper learns a size is unavailable is the error banner that
+// AddToCartButton shows *after* they submit. The fix belongs here: disable
+// the input and add a "Sold out" note for any size in `product.soldOutSizes`.
+---
+
+<fieldset>
+	<legend>Colour</legend>
+	<div class="opts">
+		<label><input type="radio" name="colour" value="Black" checked />Black</label>
+		<label><input type="radio" name="colour" value="Forest Green" />Forest Green</label>
+	</div>
+</fieldset>
+<fieldset>
+	<legend>Size</legend>
+	<div class="opts">
+		{product.sizes.map((size) => (
+			<label><input type="radio" name="size" value={size} />{size}</label>
+		))}
+	</div>
+</fieldset>

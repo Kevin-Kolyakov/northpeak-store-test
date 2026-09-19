@@ -1,0 +1,50 @@
+---
+// BUG-05 (modal_interrupt): opens unprompted on a timer, on every product
+// page, whether or not the shopper asked for it.
+// BUG-06 (keyboard_trap): never receives focus on open, and swallows Tab so
+// keyboard users can't reach "No thanks" or the close control — only Escape
+// gets out. The fix is a real focus trap: move focus into the dialog on
+// open, cycle Tab between its own focusable elements, and restore focus to
+// the trigger on close.
+---
+
+<div id="veil" class="veil" hidden>
+	<div class="pop" role="dialog" aria-label="Get 10% off your first order">
+		<h2>Get 10% off your first order</h2>
+		<p>Join the Northpeak list for early access and offers.</p>
+		<input type="email" placeholder="Email address" aria-label="Email address" />
+		<button class="primary">Sign me up</button>
+		<br />
+		<button id="nope" class="link">No thanks</button>
+	</div>
+</div>
+
+<script>
+	const veil = document.getElementById("veil")!;
+
+	function close() {
+		veil.hidden = true;
+	}
+
+	if (!sessionStorage.getItem("np-newsletter")) {
+		setTimeout(() => {
+			sessionStorage.setItem("np-newsletter", "1");
+			veil.hidden = false;
+		}, 2500);
+	}
+
+	document.getElementById("nope")!.addEventListener("click", close);
+
+	document.addEventListener(
+		"keydown",
+		(e) => {
+			if (veil.hidden) return;
+			if (e.key === "Escape") {
+				close();
+			} else if (e.key === "Tab") {
+				e.preventDefault();
+			}
+		},
+		true,
+	);
+</script>

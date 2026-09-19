@@ -1,0 +1,30 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { CATEGORIES, PRODUCTS } from "../lib/inventory";
+
+const featured = PRODUCTS.slice(0, 4);
+---
+
+<Layout title="Built for the cold">
+	<section class="hero">
+		<h1>Built for the cold.</h1>
+		<p>The Winter Edit has landed: parkas, shells and layers for the season ahead.</p>
+		<a class="btn primary" href="/collections/mens-jackets">Shop the Winter Edit</a>
+	</section>
+
+	<h2 class="section-title">Shop by category</h2>
+	<div class="grid">
+		{CATEGORIES.map((c) => (
+			<a class="card" href={`/collections/${c.slug}`} style="text-decoration:none">
+				<div class="img"></div>
+				<h3>{c.name}</h3>
+			</a>
+		))}
+	</div>
+
+	<h2 class="section-title">Featured this week</h2>
+	<div class="grid">
+		{featured.map((product) => <ProductCard product={product} />)}
+	</div>
+</Layout>
