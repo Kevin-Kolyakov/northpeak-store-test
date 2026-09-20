@@ -37,6 +37,8 @@ const availableSizes = SIZES.filter((size) => products.some((p) => p.sizes.inclu
 		</fieldset>
 	</div>
 
+	<p id="size-summary" role="status" class="crumbs">No size filters applied.</p>
+
 	<div class="grid" id="product-grid">
 		{products.map((product) => <ProductCard product={product} />)}
 	</div>
@@ -49,6 +51,7 @@ const availableSizes = SIZES.filter((size) => products.some((p) => p.sizes.inclu
 	const sortSelect = document.getElementById("sort") as HTMLSelectElement;
 	const sizeCheckboxes = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="size-filter"]'));
 	const noMatches = document.getElementById("no-matches") as HTMLElement;
+	const sizeSummary = document.getElementById("size-summary") as HTMLElement;
 
 	function applyFilters() {
 		const checkedSizes = sizeCheckboxes.filter((cb) => cb.checked).map((cb) => cb.value);
@@ -60,6 +63,7 @@ const availableSizes = SIZES.filter((size) => products.some((p) => p.sizes.inclu
 			if (matches) visibleCount++;
 		}
 		noMatches.hidden = visibleCount > 0;
+		sizeSummary.textContent = checkedSizes.length ? `Applied sizes: ${checkedSizes.join(", ")}` : "No size filters applied.";
 	}
 
 	function applySort() {
@@ -80,4 +84,5 @@ const availableSizes = SIZES.filter((size) => products.some((p) => p.sizes.inclu
 
 	sortSelect.addEventListener("change", applySort);
 	sizeCheckboxes.forEach((cb) => cb.addEventListener("change", applyFilters));
+	applyFilters();
 </script>
