@@ -24,16 +24,31 @@
 
 	function close() {
 		veil.hidden = true;
+		document.documentElement.style.overflow = "";
+		document.body.style.overflow = "";
+		document.querySelectorAll('[aria-hidden="true"][inert]').forEach((el) => {
+			try {
+				el.removeAttribute("aria-hidden");
+				el.removeAttribute("inert");
+			} catch (e) {}
+		});
 	}
 
 	if (!sessionStorage.getItem("np-newsletter")) {
 		setTimeout(() => {
 			sessionStorage.setItem("np-newsletter", "1");
 			veil.hidden = false;
+			document.documentElement.style.overflow = "hidden";
+			document.body.style.overflow = "hidden";
 		}, 2500);
 	}
 
 	document.getElementById("nope")!.addEventListener("click", close);
+	document.getElementById("nope")!.addEventListener("keydown", (e) => {
+		if (e.key === "Enter" || e.key === " ") {
+			setTimeout(close, 0);
+		}
+	});
 
 	document.addEventListener(
 		"keydown",
