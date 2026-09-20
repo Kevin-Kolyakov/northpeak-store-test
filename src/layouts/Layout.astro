@@ -52,6 +52,10 @@ const { title } = Astro.props;
 				sessionStorage.setItem("np-cookies", "1");
 				banner.hidden = true;
 			}
+			const accept = document.getElementById("ck-ok") as HTMLButtonElement | null;
+			if (accept) {
+				accept.type = "button";
+			}
 			document.getElementById("ck-ok")?.addEventListener("click", dismiss);
 			document.getElementById("ck-manage")?.addEventListener("click", dismiss);
 		</script>
