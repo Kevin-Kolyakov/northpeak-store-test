@@ -1,4 +1,5 @@
 ---
+---
 // BUG-05 (modal_interrupt): opens unprompted on a timer, on every product
 // page, whether or not the shopper asked for it.
 // BUG-06 (keyboard_trap): never receives focus on open, and swallows Tab so
@@ -15,7 +16,7 @@
 		<input type="email" placeholder="Email address" aria-label="Email address" />
 		<button class="primary">Sign me up</button>
 		<br />
-		<button id="nope" class="link">No thanks</button>
+		<button id="nope" class="link" aria-label="No thanks, close promotion">No thanks</button>
 	</div>
 </div>
 
@@ -34,6 +35,12 @@
 	}
 
 	document.getElementById("nope")!.addEventListener("click", close);
+	document.getElementById("nope")!.addEventListener("keydown", (e) => {
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			close();
+		}
+	});
 
 	document.addEventListener(
 		"keydown",
