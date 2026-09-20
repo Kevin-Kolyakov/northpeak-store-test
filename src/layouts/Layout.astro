@@ -51,6 +51,12 @@ const { title } = Astro.props;
 			function dismiss() {
 				sessionStorage.setItem("np-cookies", "1");
 				banner.hidden = true;
+				const veil = document.getElementById("veil");
+				if (veil) veil.remove();
+				document.documentElement.style.overflow = "";
+				document.body && (document.body.style.overflow = "");
+				document.querySelectorAll("[inert]").forEach((el) => el.removeAttribute("inert"));
+				document.querySelectorAll('[aria-hidden="true"]').forEach((el) => el.removeAttribute("aria-hidden"));
 			}
 			document.getElementById("ck-ok")?.addEventListener("click", dismiss);
 			document.getElementById("ck-manage")?.addEventListener("click", dismiss);
